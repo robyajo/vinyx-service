@@ -146,39 +146,6 @@ Digunakan untuk:
 
 ---
 
-# Project Structure
-
-```txt
-src/
-├── app/
-├── components/
-│   ├── ui/
-│   ├── dashboard/
-│   ├── overlays/
-│   ├── analytics/
-│   └── shared/
-│
-├── modules/
-│   ├── auth/
-│   ├── live/
-│   ├── overlays/
-│   ├── automations/
-│   ├── analytics/
-│   └── billing/
-│
-├── hooks/
-├── services/
-│   ├── api/
-│   ├── websocket/
-│   └── overlay/
-│
-├── stores/
-├── providers/
-├── types/
-├── constants/
-└── lib/
-```
-
 ---
 
 # App Router Rules
@@ -232,18 +199,50 @@ WAJIB:
 
 ---
 
-# WebSocket Events
+# WebSocket Rules
+
+## Socket.IO
+
+WAJIB:
+
+- Authentication (JWT token verification saat handshake)
+- Room-based events (per user, per live session)
+- Reconnect support with backoff
+- Typed event names:
 
 ```txt
 gift.created
 comment.created
 follow.created
+share.created
 battle.updated
 overlay.updated
 live.started
 live.ended
 automation.triggered
 ```
+
+---
+
+# Redis Rules
+
+Gunakan Redis untuk:
+
+- PubSub (cross-instance websocket events)
+- Cache (session, overlay config, rate limit counters)
+- Websocket scaling (Socket.IO Redis adapter)
+- BullMQ job queues
+- Rate limiting (sliding window)
+
+---
+
+# Queue Rules
+
+Gunakan BullMQ untuk:
+
+- Retries with exponential backoff
+- Delayed jobs (scheduled automations, reminders)
+- Event processing pipeline
 
 ---
 

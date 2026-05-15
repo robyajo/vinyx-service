@@ -1,0 +1,25 @@
+# Progress - Vynix Service
+
+## Social Auth Implementation
+- [x] Backend: Migration for social login fields
+- [x] Backend: User model update
+- [x] Backend: SocialAuthController implementation
+- [x] Backend: API Routes for social auth
+- [x] Backend: Environment configuration
+- [x] Frontend: API utility with Bearer token
+- [x] Frontend: Premium Login Page
+- [x] Frontend: Auth Callback Page
+- [x] Frontend: Card UI Component
+- [ ] Frontend: Refactor to follow Frontend Architect Skill (Zustand, TanStack Query)
+- [ ] Frontend: Project structure refactor (src/ folder)
+
+## Logs
+### 2026-05-15
+- Implemented Social Auth for Google and Discord.
+- Added SocialAuthController in Laravel.
+- Created login and callback pages in Next.js.
+- Manually added Card component for Shadcn.
+- Implemented Role and Permission CRUD with Super Admin restriction.
+- Unified Credential and Social Auth into AuthController.
+- Fixed Passport "Invalid key supplied" error by regenerating keys and updating AppServiceProvider.
+- Standardized API responses using ApiResponse trait.

@@ -1,30 +1,59 @@
 <?php
 
 use App\Ai\Agents\ChatAgent;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Socialite\Socialite;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::post('/ai-test', function (Request $request) {
     $prompt = $request->input('prompt');
     $response = (new ChatAgent)->stream($prompt);
     return $response;
-    // return response()->json([
-    //     'response' => $response,
-    // ]);
 });
 
-Route::prefix('v1/auth')->group(function () {
-    Route::get('/{provider}/redirect', function ($provider) {
-        return Socialite::driver($provider)->redirect();
+
+Route::prefix('v1')->group(function () {
+
+    Route::prefix('auth')->group(function () {
+        // Credential Auth
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::middleware('auth:api')->group(function () {
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/refresh', [AuthController::class, 'refresh']);
+            Route::post('/logout', [AuthController::class, 'logout']);
+        });
+
+
+        // Social Auth
+        Route::get('/{provider}/redirect', [AuthController::class, 'socialRedirect']);
+        Route::get('/{provider}/callback', [AuthController::class, 'socialCallback']);
     });
 
-    Route::get('/{provider}/callback', function ($provider) {
-        $user = Socialite::driver($provider)->user();
-        return $user->token;
+    /*
+    |--------------------------------------------------------------------------
+    | Protected Routes (Passport)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('auth:api')->group(function () {
+
+        Route::prefix('v1/management')->group(function () {
+            Route::apiResource('roles', RoleController::class)->middleware('role:Super Admin');
+            Route::apiResource('permissions', PermissionController::class)->middleware('role:Super Admin');
+        });
+
+        // Legacy / Debug
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
     });
 });
