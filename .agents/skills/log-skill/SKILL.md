@@ -1,38 +1,28 @@
 ---
-name: frontend-architect
-description: Build modern Next.js frontend architecture for realtime SaaS dashboards, OBS overlays, automation builders, and TikTok live interaction platforms using Laravel API + Express.js realtime engine.
+name: backend-architect
+description: Build scalable Laravel API + NestJS realtime architecture for TikTok live interaction platforms, websocket systems, automation engines, OBS overlays, and realtime SaaS platforms.
 license: MIT
 compatibility: opencode
 metadata:
-    audience: frontend-engineers
+    audience: backend-engineers
 ---
 
-# Frontend Architect Skill
+# Backend Architect Skill
 
 ## Role
 
 AI agent khusus untuk:
 
-- Next.js architecture
-- realtime dashboard systems
-- OBS overlay UI
-- automation builder UI
-- Socket.IO realtime frontend
-- SaaS frontend architecture
-- analytics dashboard
-- creator interaction platform UI
-
----
-
-# Main Responsibilities
-
-- Membuat frontend modern dan scalable
-- Menjaga clean component architecture
-- Membuat realtime UI yang smooth
-- Membuat dashboard interaktif
-- Membuat OBS overlay realtime
-- Menjaga UX cepat dan responsive
-- Menjaga consistency design system
+- Laravel API architecture
+- NestJS realtime architecture
+- Redis event-driven systems
+- TikTok connector systems
+- WebSocket management
+- Socket.IO gateway systems
+- automation engines
+- scalable realtime SaaS
+- queue & worker systems
+- Docker production infrastructure
 
 ---
 
@@ -43,172 +33,247 @@ Next.js
    ↓
 Laravel API
    ↓
-Business Logic & CRUD
+PostgreSQL
 
 Next.js
    ↓
-listener-service (Express.js)
+listener-stream (NestJS)
    ↓
-Realtime WebSocket & Overlay Events
+Socket.IO + TikTok Connector
 ```
 
 ---
 
-# Frontend Responsibilities
+# System Responsibilities
 
-Frontend bertanggung jawab untuk:
+# Laravel API
 
-- dashboard SaaS
-- realtime monitoring
-- overlay OBS UI
-- automation builder
-- analytics visualization
-- media manager
-- subscription UI
-- realtime notifications
+Laravel bertanggung jawab untuk:
+
+- authentication
+- users
+- subscriptions
+- billing
+- admin panel
+- automation CRUD
+- analytics API
+- media management
+- webhook management
+- SaaS business logic
+- database management
+
+---
+
+# listener-stream (NestJS)
+
+listener-stream bertanggung jawab untuk:
+
+- TikTok connector
+- websocket management
+- realtime websocket gateway
+- OBS overlay realtime
+- Redis PubSub
+- automation runtime
+- realtime event processing
+- overlay event broadcasting
+- websocket scaling
+- live monitoring
 
 ---
 
 # Tech Stack
 
-## Core
-
-- Next.js 15+
-- React 19+
-- TypeScript strict mode
-
----
-
-## Styling
-
-- TailwindCSS
-- Shadcn UI
-
----
-
-## State Management
-
-- Zustand
-
----
-
-## Data Fetching
-
-- TanStack Query
-
----
-
-## Forms
-
-- React Hook Form
-- Zod
-
----
-
-## Animation
-
-- Framer Motion
-- GSAP
-
----
-
-## Realtime
-
-- Socket.IO Client
-
----
-
-# API Communication Rules
-
 ## Laravel API
 
-Digunakan untuk:
+- Laravel 12+
+- PHP 8.4+
+- PostgreSQL
+- Redis
+- Laravel Queue
+- Sanctum / JWT
+- Horizon
 
-- authentication
+---
+
+## listener-stream (NestJS)
+
+- NestJS
+- TypeScript strict mode
+- Socket.IO
+- Redis
+- BullMQ
+- TikTok Live Connector
+
+---
+
+# Infrastructure
+
+- Docker
+- Docker Compose
+- Nginx
+- PM2
+- GitHub Actions
+
+---
+
+# Project Structure
+
+```txt
+project-root/
+├── app/
+├── bootstrap/
+├── config/
+├── database/
+├── routes/
+├── storage/
+├── listener-stream/
+│   ├── src/
+│   │   ├── modules/
+│   │   │   ├── tiktok/
+│   │   │   ├── websocket/
+│   │   │   ├── overlays/
+│   │   │   ├── automations/
+│   │   │   ├── analytics/
+│   │   │   ├── webhooks/
+│   │   │   └── workers/
+│   │   │
+│   │   ├── common/
+│   │   │   ├── guards/
+│   │   │   ├── decorators/
+│   │   │   ├── filters/
+│   │   │   ├── interceptors/
+│   │   │   └── interfaces/
+│   │   │
+│   │   ├── config/
+│   │   ├── redis/
+│   │   ├── queue/
+│   │   ├── gateways/
+│   │   ├── shared/
+│   │   └── main.ts
+│   │
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── nest-cli.json
+│
+└── public/
+```
+
+---
+
+# Architecture Rules
+
+## WAJIB
+
+### 1. Gunakan Event Driven Architecture
+
+Semua realtime wajib menggunakan:
+
+- Redis PubSub
+- Event Bus
+- BullMQ
+
+---
+
+### 2. Semua websocket wajib di NestJS
+
+Laravel TIDAK BOLEH menangani:
+
+- websocket gateway
+- realtime overlay
+- realtime event processing
+- TikTok connector
+- websocket scaling
+
+---
+
+### 3. Laravel adalah Database Owner
+
+Laravel menjadi source of truth untuk:
+
 - users
-- billing
 - subscriptions
-- automations CRUD
-- analytics API
-- media management
+- automations
+- overlays
+- billing
+- analytics
+
+NestJS tidak mengelola database utama.
 
 ---
 
-## listener-service
+### 4. Gunakan Modular Architecture
 
-Digunakan untuk:
+Setiap feature wajib memiliki:
 
-- websocket realtime
-- OBS overlay realtime
-- realtime events
-- live monitoring
-- live interaction events
-
----
-
----
-
-# App Router Rules
-
-WAJIB:
-
-- gunakan App Router
-- gunakan server components seperlunya
-- gunakan client components hanya jika diperlukan
+- module
+- controller
+- service
+- dto
+- gateway (jika websocket)
+- interfaces
 
 ---
 
-# TypeScript Rules
-
-WAJIB:
-
-- strict mode
-- typed props
-- typed API response
-- typed websocket events
+### 5. Gunakan TypeScript Strict Mode
 
 DILARANG:
 
 - any
 - implicit typing
+- unsafe websocket payload
 
 ---
 
-# Realtime Rules
+### 6. Gunakan DTO Validation
 
 WAJIB:
 
-- reconnect otomatis
-- loading state
-- error state
-- optimistic updates
+- class-validator
+- class-transformer
+- ValidationPipe global
+
+---
+
+### 7. Gunakan Queue untuk Heavy Process
+
+Gunakan BullMQ untuk:
+
+- webhook retry
+- automation execution
+- realtime processing
+- media processing
+- notifications
+
+---
+
+# Redis Rules
+
+Redis digunakan untuk:
+
+- PubSub
+- websocket scaling
+- Socket.IO adapter
+- BullMQ
+- cache
+- rate limiting
+
+---
+
+# WebSocket Rules
+
+## Gunakan Socket.IO
+
+WAJIB:
+
+- JWT auth saat handshake
+- room-based events
+- reconnect support
+- typed events
 - websocket cleanup
 
 ---
 
-# WebSocket Rules
-
-Gunakan Socket.IO Client.
-
-WAJIB:
-
-- JWT auth
-- reconnect support
-- room subscription
-- event cleanup
-
----
-
-# WebSocket Rules
-
-## Socket.IO
-
-WAJIB:
-
-- Authentication (JWT token verification saat handshake)
-- Room-based events (per user, per live session)
-- Reconnect support with backoff
-- Typed event names:
+# WebSocket Event Naming
 
 ```txt
 gift.created
@@ -220,178 +285,73 @@ overlay.updated
 live.started
 live.ended
 automation.triggered
+viewer.updated
 ```
 
 ---
 
-# Redis Rules
+# Realtime Flow
 
-Gunakan Redis untuk:
-
-- PubSub (cross-instance websocket events)
-- Cache (session, overlay config, rate limit counters)
-- Websocket scaling (Socket.IO Redis adapter)
-- BullMQ job queues
-- Rate limiting (sliding window)
+```txt
+TikTok Live
+↓
+listener-stream (NestJS)
+↓
+Redis PubSub
+↓
+Socket.IO Gateway
+↓
+Next.js Dashboard / OBS Overlay
+```
 
 ---
 
-# Queue Rules
+# TikTok Connector Rules
 
-Gunakan BullMQ untuk:
+WAJIB:
 
-- Retries with exponential backoff
-- Delayed jobs (scheduled automations, reminders)
-- Event processing pipeline
+- reconnect otomatis
+- heartbeat monitoring
+- proxy support
+- failover handling
+- normalized event mapping
 
 ---
 
 # Overlay Rules
 
-Overlay OBS wajib:
-
-- lightweight
-- low latency
-- realtime animation
-- browser-source friendly
-- animation optimized
-
----
-
-# Overlay Architecture
-
-```txt
-OBS Browser Source
-↓
-Next.js Overlay Page
-↓
-Socket.IO
-↓
-listener-service
-```
-
----
-
-# Animation Rules
+Overlay wajib realtime.
 
 Gunakan:
 
-- Framer Motion untuk dashboard animation
-- GSAP untuk overlay animation
+- Socket.IO
+- lightweight payload
+- optimized browser source rendering
 
 ---
 
-# State Management Rules
+# Queue Rules
 
-Gunakan Zustand untuk:
+## Laravel Queue
 
-- auth state
-- websocket state
-- overlay state
-- automation state
-- realtime event state
+Digunakan untuk:
 
----
-
-# API Rules
-
-Gunakan TanStack Query untuk:
-
-- API caching
-- mutations
-- invalidation
-- loading state
-- retry handling
+- email
+- notifications
+- billing jobs
+- reports
 
 ---
 
-# Form Rules
+## BullMQ
 
-Gunakan:
+Digunakan untuk:
 
-- React Hook Form
-- Zod validation
-
-WAJIB:
-
-- loading state
-- validation state
-- disabled state
-- error messages
-
----
-
-# UI Rules
-
-WAJIB:
-
-- responsive
-- accessible
-- dark mode support
-- smooth transitions
-- realtime feel
-
----
-
-# Dashboard Rules
-
-Dashboard wajib memiliki:
-
-- realtime viewer count
-- realtime gift logs
-- comment monitor
-- battle monitor
-- engagement analytics
-- overlay controls
-
----
-
-# Automation Builder Rules
-
-Automation UI wajib:
-
-- trigger builder
-- action builder
-- realtime preview
-- drag & drop ready
-- scalable architecture
-
----
-
-# Analytics Rules
-
-Gunakan:
-
-- Recharts
-
-WAJIB:
-
-- realtime chart updates
-- responsive charts
-- performant rendering
-
----
-
-# Performance Rules
-
-WAJIB:
-
-- lazy loading
-- code splitting
-- memoization
-- optimized websocket listeners
-- image optimization
-
----
-
-# Error Handling Rules
-
-WAJIB:
-
-- error boundaries
-- toast notifications
-- retry handling
-- websocket reconnect handling
+- realtime jobs
+- automation runtime
+- websocket jobs
+- webhook retry
+- media processing
 
 ---
 
@@ -399,10 +359,51 @@ WAJIB:
 
 WAJIB:
 
-- protected routes
-- token refresh handling
-- secure local storage usage
-- no exposed secrets
+- JWT auth
+- refresh token rotation
+- rate limiting
+- Redis auth
+- Helmet
+- webhook signature
+- CORS protection
+
+---
+
+# Logging Rules
+
+WAJIB:
+
+- structured logging
+- websocket logs
+- connector logs
+- webhook logs
+- automation logs
+
+---
+
+# DevOps Rules
+
+WAJIB:
+
+- Docker support
+- docker-compose
+- healthcheck endpoint
+- Redis healthcheck
+- PostgreSQL backup
+- PM2 ecosystem
+
+---
+
+# Code Style
+
+WAJIB:
+
+- SOLID principles
+- clean architecture
+- reusable services
+- reusable guards
+- reusable DTO
+- centralized config
 
 ---
 
@@ -410,11 +411,11 @@ WAJIB:
 
 Selalu:
 
-- gunakan reusable components
-- gunakan reusable hooks
-- gunakan centralized constants
 - gunakan typed events
-- gunakan modular structure
+- gunakan centralized constants
+- gunakan modular architecture
+- gunakan queue untuk heavy jobs
+- gunakan Redis PubSub untuk realtime
 
 ---
 
@@ -422,26 +423,28 @@ Selalu:
 
 DILARANG:
 
-- hardcoded API URL
-- duplicate components
-- massive inline logic
-- direct DOM manipulation berlebihan
-- websocket logic tersebar
+- websocket logic di Laravel
+- TikTok connector di Laravel
+- hardcoded secrets
+- direct emit antar service
+- monolithic god-service
+- database ownership di NestJS
 
 ---
 
 # Output Expectations
 
-Saat generate frontend code:
+Saat generate code:
 
 WAJIB:
 
 - production-ready
-- responsive
 - scalable
-- reusable
 - realtime-ready
-- smooth UX
+- modular
+- maintainable
+- typed
+- event-driven
 
 ---
 

@@ -56,6 +56,10 @@ return [
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
+    'jwt_secret' => env('JWT_SECRET'),
+
+    'listener_api_key' => env('LISTENER_API_KEY'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
