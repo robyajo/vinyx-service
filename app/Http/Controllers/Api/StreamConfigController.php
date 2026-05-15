@@ -18,6 +18,10 @@ class StreamConfigController extends Controller
         $config = StreamConfig::firstOrCreate(
             ['user_id' => $request->user()->id],
             [
+                'active_platform' => 'tiktok',
+                'alert_overlay_enabled' => true,
+                'member_ticker_enabled' => true,
+                'gift_overlay_enabled' => true,
                 'tiktok_username' => null,
                 'listener_port' => 9090,
                 'is_active' => false,
@@ -36,6 +40,10 @@ class StreamConfigController extends Controller
     public function update(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'active_platform' => 'nullable|in:tiktok,youtube,shopee',
+            'alert_overlay_enabled' => 'boolean',
+            'member_ticker_enabled' => 'boolean',
+            'gift_overlay_enabled' => 'boolean',
             'tiktok_username' => 'nullable|string|max:100',
             'listener_port' => 'nullable|integer|min:1024|max:65535',
             'is_active' => 'boolean',
@@ -76,6 +84,10 @@ class StreamConfigController extends Controller
 
         return response()->json(
             $config?->toArray() ?? [
+                'active_platform' => 'tiktok',
+                'alert_overlay_enabled' => true,
+                'member_ticker_enabled' => true,
+                'gift_overlay_enabled' => true,
                 'tiktok_username' => '',
                 'listener_port' => 9090,
                 'is_active' => false,

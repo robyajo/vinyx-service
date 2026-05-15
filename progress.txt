@@ -35,9 +35,20 @@
 - Verified WS event names match between NestJS and frontend (dot notation consistent).
 - Verified `TikTokAccountResource` returns `isConnected`, `LiveSessionResource` returns `metadata`.
 
+### 2026-05-16 — Cleanup: Remove YouTube/Shopee, focus TikTok only
+- Removed `YouTubeAccount` and `ShopeeAccount` models
+- Removed `YouTubeAccountController` and `ShopeeAccountController`
+- Removed `YouTubeAccountResource` and `ShopeeAccountResource`
+- Removed YouTube/Shopee routes from `api.php`
+- Simplified `ListenerStreamService` (TikTok only)
+- Added `unique_id` auto-derive from `username` in TikTokAccountController@update
+- Improved `fetchAvatarFromTikTok` with tikwm.com API fallback + HTML scrape
+- Removed unique constraint on `tiktok_accounts.unique_id` (migration)
+- Added `alert_overlay_enabled`, `member_ticker_enabled`, `gift_overlay_enabled` to `stream_configs` (migration)
+- Updated `StreamConfigController` + `StreamConfig` model with overlay toggles
+
 ### Architectural Gaps Found
 - `listener-stream` uses in-memory `@nestjs/event-emitter` instead of Redis PubSub — breaks scaling.
-- `listener-stream` has flat directory structure (`gateways/`, `events/`, `shared/`) — does not follow modular pattern (modules/tiktok/, modules/websocket/).
 - No BullMQ integration for heavy processing (automation runtime, webhook retry).
 - No healthcheck endpoints for WS, Redis, or services.
 - No structured logging for WS, connector, automation events.

@@ -36,8 +36,8 @@ class TikTokAccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:50',
-            'uniqueId' => 'required|string|max:50|unique:tiktok_accounts,unique_id',
-            'unique_id' => 'sometimes|string|max:50|unique:tiktok_accounts,unique_id',
+            'uniqueId' => 'sometimes|string|max:50',
+            'unique_id' => 'sometimes|string|max:50',
             'avatar_url' => 'nullable|url',
             'avatarUrl' => 'nullable|url',
             'sessionId' => 'nullable|string',
@@ -50,7 +50,7 @@ class TikTokAccountController extends Controller
         }
 
         $data = $validator->validated();
-        $data['unique_id'] = $data['unique_id'] ?? $data['uniqueId'];
+        $data['unique_id'] = $data['unique_id'] ?? $data['uniqueId'] ?? $data['username'];
         $data['avatar_url'] = $data['avatar_url'] ?? $data['avatarUrl'] ?? null;
         $data['session_id'] = $data['session_id'] ?? $data['sessionId'] ?? null;
         unset($data['uniqueId'], $data['avatarUrl'], $data['sessionId']);
@@ -72,6 +72,25 @@ class TikTokAccountController extends Controller
 
     private function fetchAvatarFromTikTok(string $uniqueId): ?string
     {
+        // Try TikTok API first (more reliable)
+        try {
+            $apiResponse = Http::timeout(5)
+                ->withUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+                ->get("https://www.tikwm.com/api/user/info?unique_id={$uniqueId}");
+
+            if ($apiResponse->successful()) {
+                $apiData = $apiResponse->json();
+                $avatar = $apiData['data']['user']['avatarLarger']
+                    ?? $apiData['data']['user']['avatarMedium']
+                    ?? $apiData['data']['user']['avatarThumb']
+                    ?? null;
+                if ($avatar) return $avatar;
+            }
+        } catch (ConnectionException) {
+            // fallback to HTML parsing
+        }
+
+        // Fallback: scrape HTML
         try {
             $response = Http::timeout(5)
                 ->withUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
@@ -113,7 +132,7 @@ class TikTokAccountController extends Controller
 
         $validator = Validator::make($request->all(), [
             'username' => 'sometimes|string|max:50',
-            'uniqueId' => 'sometimes|string|max:50|unique:tiktok_accounts,unique_id,' . $account->id,
+            'uniqueId' => 'sometimes|string|max:50',
             'unique_id' => 'sometimes|string|max:50|unique:tiktok_accounts,unique_id,' . $account->id,
             'avatar_url' => 'nullable|url',
             'avatarUrl' => 'nullable|url',
@@ -136,7 +155,22 @@ class TikTokAccountController extends Controller
         if (isset($data['sessionId']) && !isset($data['session_id'])) {
             $data['session_id'] = $data['sessionId'];
         }
+        // Derive unique_id from username if not explicitly provided
+        if (isset($data['username']) && !isset($data['unique_id'])) {
+            $data['unique_id'] = $data['username'];
+        }
         unset($data['uniqueId'], $data['avatarUrl'], $data['sessionId']);
+
+        // Auto-fetch avatar when username/uniqueId changes
+        if (isset($data['username']) || isset($data['unique_id'])) {
+            $target = $data['unique_id'] ?? $data['username'] ?? $account->unique_id;
+            if (!$account->avatar_url || $target !== $account->unique_id) {
+                $fetched = $this->fetchAvatarFromTikTok($target);
+                if ($fetched) {
+                    $data['avatar_url'] = $fetched;
+                }
+            }
+        }
 
         $account->update($data);
 

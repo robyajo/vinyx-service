@@ -10,6 +10,7 @@ class LiveSession extends Model
 {
     protected $fillable = [
         'id',
+        'platform',
         'account_id',
         'status',
         'started_at',
@@ -20,6 +21,7 @@ class LiveSession extends Model
     protected function casts(): array
     {
         return [
+            'platform' => 'string',
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
             'metadata' => 'array',

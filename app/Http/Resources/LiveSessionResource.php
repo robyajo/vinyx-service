@@ -12,6 +12,7 @@ class LiveSessionResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'accountId' => (string) $this->account_id,
+            'platform' => $this->platform ?? 'tiktok',
             'status' => $this->status,
             'startedAt' => $this->started_at?->toIso8601String(),
             'endedAt' => $this->ended_at?->toIso8601String(),
@@ -22,7 +23,6 @@ class LiveSessionResource extends JsonResource
             '_count' => $this->when($this->live_events_count !== null, [
                 'liveEvents' => (int) $this->live_events_count,
             ]),
-            'account' => new TikTokAccountResource($this->whenLoaded('account')),
         ];
     }
 }

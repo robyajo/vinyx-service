@@ -30,7 +30,7 @@ class InternalStreamController extends Controller
 
         $validator = Validator::make($request->all(), [
             'id' => 'nullable|string',
-            'account_id' => 'required|exists:tiktok_accounts,id',
+            'account_id' => 'required|integer',
             'status' => 'required|in:CONNECTED,DISCONNECTED,RECONNECTING,ERROR',
             'started_at' => 'required|date',
             'ended_at' => 'nullable|date',

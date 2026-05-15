@@ -35,8 +35,42 @@ class ListenerStreamService
             $payload['sessionId'] = $account->session_id;
         }
 
+        return $this->post('/api/internal/tiktok/connect', $payload);
+    }
+
+    public function disconnect(string $accountId, string $userId): ?array
+    {
         try {
-            $response = Http::timeout(15)->post("{$this->baseUrl}/api/internal/tiktok/connect", $payload);
+            $response = Http::timeout(10)->post("{$this->baseUrl}/api/internal/tiktok/disconnect", [
+                'accountId' => $accountId,
+                'userId' => $userId,
+                'api_key' => $this->apiKey,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            \Log::error('ListenerStream disconnect failed', [
+                'accountId' => $accountId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            \Log::error('ListenerStream disconnect connection error', [
+                'accountId' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    protected function post(string $endpoint, array $payload): array
+    {
+        try {
+            $response = Http::timeout(15)->post("{$this->baseUrl}{$endpoint}", $payload);
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             return [
                 'success' => false,
@@ -54,8 +88,8 @@ class ListenerStreamService
         $body = $response->json();
         $reason = $body['message'] ?? $response->body();
 
-        \Log::error('ListenerStream connect failed', [
-            'accountId' => $accountId,
+        \Log::error('ListenerStream request failed', [
+            'endpoint' => $endpoint,
             'status' => $response->status(),
             'reason' => $reason,
         ]);
@@ -64,26 +98,5 @@ class ListenerStreamService
             'success' => false,
             'error' => $reason,
         ];
-    }
-
-    public function disconnect(string $accountId, string $userId): ?array
-    {
-        $response = Http::timeout(10)->post("{$this->baseUrl}/api/internal/tiktok/disconnect", [
-            'accountId' => $accountId,
-            'userId' => $userId,
-            'api_key' => $this->apiKey,
-        ]);
-
-        if ($response->successful()) {
-            return $response->json();
-        }
-
-        \Log::error('ListenerStream disconnect failed', [
-            'accountId' => $accountId,
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
-
-        return null;
     }
 }

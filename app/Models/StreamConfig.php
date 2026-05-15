@@ -9,6 +9,10 @@ class StreamConfig extends Model
 {
     protected $fillable = [
         'user_id',
+        'active_platform',
+        'alert_overlay_enabled',
+        'member_ticker_enabled',
+        'gift_overlay_enabled',
         'tiktok_username',
         'listener_port',
         'is_active',
@@ -24,6 +28,9 @@ class StreamConfig extends Model
     {
         return [
             'is_active' => 'boolean',
+            'alert_overlay_enabled' => 'boolean',
+            'member_ticker_enabled' => 'boolean',
+            'gift_overlay_enabled' => 'boolean',
             'new_user_sound_enabled' => 'boolean',
             'chat_sound_enabled' => 'boolean',
             'tts_active' => 'boolean',
