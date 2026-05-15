@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class LiveSession extends Model
 {
     protected $fillable = [
+        'id',
         'account_id',
         'status',
         'started_at',

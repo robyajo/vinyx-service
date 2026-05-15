@@ -29,6 +29,7 @@ class InternalStreamController extends Controller
         $this->checkApiKey($request);
 
         $validator = Validator::make($request->all(), [
+            'id' => 'nullable|string',
             'account_id' => 'required|exists:tiktok_accounts,id',
             'status' => 'required|in:CONNECTED,DISCONNECTED,RECONNECTING,ERROR',
             'started_at' => 'required|date',
@@ -45,11 +46,11 @@ class InternalStreamController extends Controller
         return $this->createdResponse($session, 'Session tersimpan');
     }
 
-    public function updateSession(Request $request, string $sessionId): JsonResponse
+    public function updateSession(Request $request, string $session): JsonResponse
     {
         $this->checkApiKey($request);
 
-        $session = LiveSession::find($sessionId);
+        $session = LiveSession::find($session);
         if (!$session) {
             return $this->notFoundResponse('Session tidak ditemukan');
         }

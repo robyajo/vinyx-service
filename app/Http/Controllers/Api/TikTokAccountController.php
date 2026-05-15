@@ -40,6 +40,8 @@ class TikTokAccountController extends Controller
             'unique_id' => 'sometimes|string|max:50|unique:tiktok_accounts,unique_id',
             'avatar_url' => 'nullable|url',
             'avatarUrl' => 'nullable|url',
+            'sessionId' => 'nullable|string',
+            'session_id' => 'nullable|string',
             'proxy' => 'nullable|string',
         ]);
 
@@ -50,7 +52,8 @@ class TikTokAccountController extends Controller
         $data = $validator->validated();
         $data['unique_id'] = $data['unique_id'] ?? $data['uniqueId'];
         $data['avatar_url'] = $data['avatar_url'] ?? $data['avatarUrl'] ?? null;
-        unset($data['uniqueId'], $data['avatarUrl']);
+        $data['session_id'] = $data['session_id'] ?? $data['sessionId'] ?? null;
+        unset($data['uniqueId'], $data['avatarUrl'], $data['sessionId']);
 
         if (!$data['avatar_url']) {
             $fetched = $this->fetchAvatarFromTikTok($data['unique_id']);
@@ -114,6 +117,8 @@ class TikTokAccountController extends Controller
             'unique_id' => 'sometimes|string|max:50|unique:tiktok_accounts,unique_id,' . $account->id,
             'avatar_url' => 'nullable|url',
             'avatarUrl' => 'nullable|url',
+            'sessionId' => 'nullable|string',
+            'session_id' => 'nullable|string',
             'proxy' => 'nullable|string',
         ]);
 
@@ -128,7 +133,10 @@ class TikTokAccountController extends Controller
         if (isset($data['avatarUrl']) && !isset($data['avatar_url'])) {
             $data['avatar_url'] = $data['avatarUrl'];
         }
-        unset($data['uniqueId'], $data['avatarUrl']);
+        if (isset($data['sessionId']) && !isset($data['session_id'])) {
+            $data['session_id'] = $data['sessionId'];
+        }
+        unset($data['uniqueId'], $data['avatarUrl'], $data['sessionId']);
 
         $account->update($data);
 
@@ -165,12 +173,22 @@ class TikTokAccountController extends Controller
             ->first();
 
         if ($activeSession) {
-            return $this->errorResponse('Akun sudah terhubung ke live', 400);
+            $listener->disconnect($account->id, (string) $request->user()->id);
+            $activeSession->update(['status' => 'DISCONNECTED', 'ended_at' => now()]);
+            $account->update(['is_connected' => false]);
         }
 
-        $result = $listener->connect($account->id, (string) $request->user()->id);
+        $session = LiveSession::create([
+            'account_id' => $account->id,
+            'status' => 'PENDING',
+            'started_at' => now(),
+            'metadata' => [],
+        ]);
+
+        $result = $listener->connect($account->id, (string) $request->user()->id, $account->session_id, $session->id);
 
         if (!$result['success']) {
+            $session->update(['status' => 'DISCONNECTED', 'ended_at' => now()]);
             return $this->errorResponse($result['error'], 502);
         }
 
@@ -181,16 +199,11 @@ class TikTokAccountController extends Controller
             $account->update(['avatar_url' => $avatarUrl]);
         }
 
-        $session = LiveSession::create([
-            'account_id' => $account->id,
-            'status' => 'CONNECTED',
-            'started_at' => now(),
-            'metadata' => $sessionData['metadata'] ?? [],
-        ]);
+        $session->update(['status' => 'CONNECTED']);
 
         $account->update(['is_connected' => true]);
 
-        return $this->successResponse(new LiveSessionResource($session), 'Terhubung ke live TikTok');
+        return $this->successResponse(new LiveSessionResource($session->fresh()), 'Terhubung ke live TikTok');
     }
 
     public function disconnect(Request $request, TikTokAccount $account, ListenerStreamService $listener): JsonResponse

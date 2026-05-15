@@ -15,6 +15,7 @@ class TikTokAccount extends Model
         'username',
         'unique_id',
         'avatar_url',
+        'session_id',
         'proxy',
         'is_connected',
     ];

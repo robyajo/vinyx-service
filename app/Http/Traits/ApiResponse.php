@@ -83,18 +83,14 @@ trait ApiResponse
         return $this->errorResponse($message, 401);
     }
 
-    /**
-     * Return a validation error response.
-     *
-     * @param array $errors
-     * @param string $message
-     * @return JsonResponse
-     */
     protected function validationErrorResponse(
-        array $errors,
+        array|\Illuminate\Contracts\Support\MessageBag $errors,
         string $message = 'Validation failed',
         int $statusCode = 422
     ): JsonResponse {
+        if ($errors instanceof \Illuminate\Contracts\Support\MessageBag) {
+            $errors = $errors->toArray();
+        }
         return response()->json([
             'success' => false,
             'message' => $message,

@@ -13,18 +13,26 @@ class AvatarService
     {
         $avatar = $user->avatar;
 
-        if (!$avatar || !str_starts_with($avatar, 'http')) {
+        if (!$avatar) return;
+
+        $baseUrl = rtrim(config('app.url'), '/');
+
+        // Jika sudah local URL, pastikan file masih ada
+        if (str_starts_with($avatar, $baseUrl . '/storage/')) {
+            $filename = str_replace($baseUrl . '/storage/', '', $avatar);
+            if (!Storage::disk('public')->exists($filename)) {
+                $user->updateQuietly(['avatar' => null]);
+            }
             return;
         }
 
+        // Remote URL — download/cache ulang
         $ext = $this->guessExtension($avatar);
         $filename = "avatars/{$user->id}.{$ext}";
 
+        // Hapus cache lama jika ada
         if (Storage::disk('public')->exists($filename)) {
-            if ($avatar !== $this->localUrl($filename)) {
-                $user->updateQuietly(['avatar' => $this->localUrl($filename)]);
-            }
-            return;
+            Storage::disk('public')->delete($filename);
         }
 
         try {
@@ -32,10 +40,10 @@ class AvatarService
 
             if ($response->successful()) {
                 Storage::disk('public')->put($filename, $response->body());
-                $user->updateQuietly(['avatar' => $this->localUrl($filename)]);
+                $user->updateQuietly(['avatar' => $this->localUrl($baseUrl, $filename)]);
             }
         } catch (ConnectionException) {
-            // Silently fail — keep the original Google URL as fallback
+            // Keep original remote URL as fallback
         }
     }
 
@@ -47,9 +55,8 @@ class AvatarService
         return 'jpg';
     }
 
-    private function localUrl(string $filename): string
+    private function localUrl(string $baseUrl, string $filename): string
     {
-        $base = rtrim(config('app.url'), '/');
-        return "{$base}/storage/{$filename}";
+        return "{$baseUrl}/storage/{$filename}";
     }
 }

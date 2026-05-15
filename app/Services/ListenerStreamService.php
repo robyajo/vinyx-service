@@ -16,7 +16,7 @@ class ListenerStreamService
         $this->apiKey = config('app.listener_api_key');
     }
 
-    public function connect(string $accountId, string $userId): array
+    public function connect(string $accountId, string $userId, ?string $sessionId = null, ?string $liveSessionId = null): array
     {
         $account = TikTokAccount::find($accountId);
 
@@ -24,6 +24,7 @@ class ListenerStreamService
             'accountId' => $accountId,
             'userId' => $userId,
             'api_key' => $this->apiKey,
+            'liveSessionId' => $liveSessionId,
         ];
 
         if ($account) {
@@ -31,6 +32,7 @@ class ListenerStreamService
             $payload['uniqueId'] = $account->unique_id;
             $payload['avatarUrl'] = $account->avatar_url;
             $payload['proxy'] = $account->proxy;
+            $payload['sessionId'] = $account->session_id;
         }
 
         try {

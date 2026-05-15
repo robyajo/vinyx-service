@@ -15,6 +15,7 @@ class TikTokAccountResource extends JsonResource
             'username' => $this->username,
             'uniqueId' => $this->unique_id,
             'avatarUrl' => $this->avatar_url,
+            'sessionId' => $this->session_id,
             'isConnected' => (bool) $this->is_connected,
             'proxy' => $this->proxy,
             'createdAt' => $this->created_at->toIso8601String(),
