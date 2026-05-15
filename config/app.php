@@ -60,6 +60,8 @@ return [
 
     'listener_api_key' => env('LISTENER_API_KEY'),
 
+    'listener_stream_url' => env('LISTENER_STREAM_URL', 'http://localhost:9090'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

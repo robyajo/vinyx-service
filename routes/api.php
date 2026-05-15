@@ -2,6 +2,8 @@
 
 use App\Ai\Agents\ChatAgent;
 use App\Http\Controllers\Api\AuthTokenController;
+use App\Http\Controllers\Api\BillingController;
+use App\Http\Controllers\Api\InternalStreamController;
 use App\Http\Controllers\Api\LiveActivityController;
 use App\Http\Controllers\Api\StreamConfigController;
 use App\Http\Controllers\Api\TikTokAccountController;
@@ -94,6 +96,9 @@ Route::prefix('v1')->group(function () {
             Route::patch('/accounts/{account}', [TikTokAccountController::class, 'update']);
             Route::delete('/accounts/{account}', [TikTokAccountController::class, 'destroy']);
 
+            Route::post('/accounts/{account}/connect', [TikTokAccountController::class, 'connect']);
+            Route::post('/accounts/{account}/disconnect', [TikTokAccountController::class, 'disconnect']);
+
             Route::get('/accounts/{account}/sessions', [TikTokAccountController::class, 'sessions']);
             Route::get('/sessions/{session}', [TikTokAccountController::class, 'sessionDetail']);
             Route::get('/sessions/{session}/events', [TikTokAccountController::class, 'sessionEvents']);
@@ -104,5 +109,23 @@ Route::prefix('v1')->group(function () {
         */
         Route::get('/stream-config', [StreamConfigController::class, 'show']);
         Route::put('/stream-config', [StreamConfigController::class, 'update']);
+
+        /*
+        | Billing & Gems
+        */
+        Route::prefix('billing')->group(function () {
+            Route::get('/gems', [BillingController::class, 'gems']);
+        });
+    });
+
+    /*
+    | Internal Routes (for listener-stream service only)
+    */
+    Route::prefix('internal')->group(function () {
+        Route::post('/live-sessions', [InternalStreamController::class, 'storeSession']);
+        Route::put('/live-sessions/{session}', [InternalStreamController::class, 'updateSession']);
+        Route::post('/live-events', [InternalStreamController::class, 'storeEvent']);
+        Route::post('/live-events/batch', [InternalStreamController::class, 'storeEvents']);
+        Route::post('/users/gems', [InternalStreamController::class, 'updateUserGems']);
     });
 });

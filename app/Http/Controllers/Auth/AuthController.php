@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Http\Traits\ApiResponse;
 use App\Models\User;
+use App\Services\AvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,32 +18,23 @@ class AuthController extends Controller
 {
     use ApiResponse;
 
-    /**
-     * Register a new user.
-     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'displayName' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'password_confirmation' => 'required|string|min:8',
+            'password' => 'required|string|min:8',
+            'confirmPassword' => 'required|string|min:8|same:password',
         ], [
-            'name.required' => 'Nama wajib diisi',
-            'name.max' => 'Nama maksimal 255 karakter',
+            'displayName.required' => 'Nama wajib diisi',
             'username.required' => 'Username wajib diisi',
-            'username.max' => 'Username maksimal 255 karakter',
             'username.unique' => 'Username sudah terdaftar',
             'email.required' => 'Email wajib diisi',
-            'email.email' => 'Email tidak valid',
-            'email.max' => 'Email maksimal 255 karakter',
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password wajib diisi',
             'password.min' => 'Password minimal 8 karakter',
-            'password.confirmed' => 'Password tidak cocok',
-            'password_confirmation.required' => 'Konfirmasi Password wajib diisi',
-            'password_confirmation.min' => 'Konfirmasi Password minimal 8 karakter',
+            'confirmPassword.same' => 'Password tidak cocok',
         ]);
 
         if ($validator->fails()) {
@@ -49,8 +42,7 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-
-            'name' => $request->name,
+            'name' => $request->displayName,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -61,16 +53,13 @@ class AuthController extends Controller
         return $this->createdResponse($this->formatUserData($user), 'User registered successfully');
     }
 
-    /**
-     * Login user and create token.
-     */
-    public function login(Request $request)
+    public function login(Request $request, AvatarService $avatar)
     {
         $validator = Validator::make($request->all(), [
-            'login' => 'required|string',
+            'username' => 'required|string',
             'password' => 'required|string',
         ], [
-            'login.required' => 'Email atau username wajib diisi',
+            'username.required' => 'Email atau username wajib diisi',
             'password.required' => 'Password wajib diisi',
         ]);
 
@@ -78,80 +67,55 @@ class AuthController extends Controller
             return $this->validationErrorResponse($validator->errors()->toArray());
         }
 
-        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $loginType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if (!Auth::attempt([$loginType => $request->login, 'password' => $request->password])) {
+        if (!Auth::attempt([$loginType => $request->username, 'password' => $request->password])) {
             return $this->unauthorizedResponse('Email atau username salah');
         }
 
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+        $avatar->ensureLocalAvatar($user);
         return $this->successResponse($this->formatUserData($user), 'Login successful');
     }
 
-    /**
-     * Get the authenticated User.
-     */
-    public function me(Request $request)
+    public function me(Request $request, AvatarService $avatar)
     {
         $user = $request->user()->load('roles', 'permissions');
 
-        return $this->successResponse([
-            'user' => $user,
-            'roles' => $user->roles->pluck('name')->implode(','),
-            'permissions' => $user->permissions->pluck('name')->toArray(),
-        ], 'User profile retrieved');
+        $avatar->ensureLocalAvatar($user);
+
+        return $this->successResponse(new UserResource($user), 'User profile retrieved');
     }
 
-    /**
-     * Log the user out (Invalidate the token).
-     */
     public function logout(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = $request->user();
-
-        /** @var \Laravel\Passport\Token $token */
         $token = $user->token();
         $token->revoke();
 
         return $this->successResponse(null, 'Logged out successfully');
     }
 
-    /**
-     * Refresh the user's access token.
-     */
-    public function refresh(Request $request)
+    public function refresh(Request $request, AvatarService $avatar)
     {
-        /** @var \App\Models\User $user */
         $user = $request->user();
+
+        $avatar->ensureLocalAvatar($user);
 
         return $this->successResponse($this->formatUserData($user), 'Token refreshed successfully');
     }
 
-    /**
-     * Redirect to social provider.
-     */
     public function socialRedirect(string $provider)
     {
-        /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
-        $driver = Socialite::driver($provider);
-
-        return $driver->stateless()->redirect();
+        return Socialite::driver($provider)->stateless()->redirect();
     }
 
-    /**
-     * Handle social provider callback.
-     */
-    public function socialCallback(string $provider)
+    public function socialCallback(string $provider, AvatarService $avatar)
     {
         try {
-            /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
-            $driver = Socialite::driver($provider);
-
-            $socialUser = $driver->stateless()->user();
+            $socialUser = Socialite::driver($provider)->stateless()->user();
         } catch (\Exception $e) {
-            return redirect(config('app.frontend_url') . '/login?error=Invalid credentials');
+            return redirect(config('app.frontend_url') . '/signin?error=Invalid credentials');
         }
 
         $user = User::where('email', $socialUser->getEmail())->first();
@@ -159,7 +123,6 @@ class AuthController extends Controller
         if (!$user) {
             $username = Str::slug($socialUser->getName() ?? $socialUser->getNickname(), '');
 
-            // Ensure unique username
             $originalUsername = $username;
             $count = 1;
             while (User::where('username', $username)->exists()) {
@@ -167,7 +130,6 @@ class AuthController extends Controller
             }
 
             $user = User::create([
-
                 'name' => $socialUser->getName() ?? $socialUser->getNickname(),
                 'email' => $socialUser->getEmail(),
                 'username' => $username,
@@ -186,20 +148,29 @@ class AuthController extends Controller
             ]);
         }
 
-        $userData = $this->formatUserData($user);
+        $avatar->ensureLocalAvatar($user);
 
-        // Redirect back to frontend with token
         $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
-        return redirect($frontendUrl . '/auth/callback?token=' . $userData['accessToken']);
+
+        $accessToken = $user->createToken('credential-login')->accessToken;
+        $refreshToken = $user->createToken('credential-refresh')->accessToken;
+
+        return redirect($frontendUrl . '/oauth/callback?accessToken=' . $accessToken . '&refreshToken=' . $refreshToken);
     }
 
     private function formatUserData($user)
     {
+        $accessToken = $user->createToken('credential-login')->accessToken;
+        $refreshToken = $user->createToken('credential-refresh')->accessToken;
+
         return [
-            'user' => $user,
+            'user' => new UserResource($user),
             'roles' => $user->roles->pluck('name')->implode(','),
             'permissions' => $user->permissions->pluck('name')->toArray(),
-            'accessToken' => $user->createToken('credential-login')->accessToken,
+            'tokens' => [
+                'accessToken' => $accessToken,
+                'refreshToken' => $refreshToken,
+            ],
         ];
     }
 }

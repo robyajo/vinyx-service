@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TikTokAccount extends Model
 {
+    protected $table = 'tiktok_accounts';
+
     protected $fillable = [
         'user_id',
         'username',

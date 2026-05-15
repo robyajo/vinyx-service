@@ -23,3 +23,22 @@
 - Unified Credential and Social Auth into AuthController.
 - Fixed Passport "Invalid key supplied" error by regenerating keys and updating AppServiceProvider.
 - Standardized API responses using ApiResponse trait.
+
+### 2026-05-15 (Session 2)
+- Added `gems`, `events_used`, `events_cycle_at` columns to `users` table (migration).
+- Created `BillingController` with `GET /api/v1/billing/gems` returning `GemSubscriptionInfo` shape.
+- Added `POST /api/v1/internal/users/gems` internal endpoint for NestJS to update user gems via Laravel.
+- Updated `UserResource` to read real DB values instead of stubs.
+- Added `gems`, `events_used`, `events_cycle_at` to User model fillable + casts.
+- Updated frontend `dashboard-header-right.tsx` with loading skeleton for gem fetch.
+- Cleaned up unused imports in dashboard-header-right.tsx.
+- Verified WS event names match between NestJS and frontend (dot notation consistent).
+- Verified `TikTokAccountResource` returns `isConnected`, `LiveSessionResource` returns `metadata`.
+
+### Architectural Gaps Found
+- `listener-stream` uses in-memory `@nestjs/event-emitter` instead of Redis PubSub — breaks scaling.
+- `listener-stream` has flat directory structure (`gateways/`, `events/`, `shared/`) — does not follow modular pattern (modules/tiktok/, modules/websocket/).
+- No BullMQ integration for heavy processing (automation runtime, webhook retry).
+- No healthcheck endpoints for WS, Redis, or services.
+- No structured logging for WS, connector, automation events.
+- No DTO validation (class-validator/class-transformer/ValidationPipe) in listener-stream NestJS app.

@@ -27,7 +27,10 @@ use Ramsey\Uuid\Uuid;
     'avatar',
     'gender',
     'birth_date',
-    'is_active'
+    'is_active',
+    'gems',
+    'events_used',
+    'events_cycle_at'
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements OAuthenticatable
@@ -44,6 +47,7 @@ class User extends Authenticatable implements OAuthenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'events_cycle_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
